@@ -121,14 +121,14 @@ class OnePlusOneE:
 
 class MuPlusLambda():
     n_genes = 10
-    poblation_size = 50
-    lambd = 40
+    poblation_size = 100
+    lambd = 75
     population = []
-    population_variaces = []
+    population_variances = []
     best_fitness_generations = []
-    n_generations = 300
+    n_generations = 500
     module_ind = 5
-    module_variance = 5
+    module_variance = 10
     n_participants = 5
     best_individual_generations = []
     tasa_aprendizaje0 = 1 / math.sqrt(2 * lambd)
@@ -146,7 +146,7 @@ class MuPlusLambda():
         for j in range(self.poblation_size):
             individual, variance = self.initialize_individual()
             self.population.append(individual)
-            self.population_variaces.append(variance)
+            self.population_variances.append(variance)
 
     def evaluate_individual(self, individual=None):
         url = ""
@@ -212,9 +212,9 @@ class MuPlusLambda():
         #sorting variances
         sorted_variances = []
         for i in index_list:
-            sorted_variances.append(self.population_variaces[i])
+            sorted_variances.append(self.population_variances[i])
 
-        self.population_variaces = sorted_variances.copy()
+        self.population_variances = sorted_variances.copy()
 
     def generate_new_individuals(self, generation):
 
@@ -230,7 +230,7 @@ class MuPlusLambda():
                 # each gen is the mean
                 new_gen = (self.population[i][j] + self.population[i + 1][j]) / 2
                 # print(str(j) + ": " + str(new_gen))
-                gen_variance_posibilities = [self.population_variaces[i][j], self.population_variaces[i + 1][j]]
+                gen_variance_posibilities = [self.population_variances[i][j], self.population_variances[i + 1][j]]
                 new_gen_variance = random.choice(gen_variance_posibilities)
 
                 # mutate the gen
@@ -245,7 +245,7 @@ class MuPlusLambda():
             if i == 0:
                 print("NEW: " + str(new_individual))
             self.population.append(new_individual)
-            self.population_variaces.append(new_individual_variances)
+            self.population_variances.append(new_individual_variances)
 
         # sort the population again
         self.sort_population()
@@ -255,50 +255,54 @@ class MuPlusLambda():
         # selection of the best individuals
         for i in range(self.lambd):
             self.population.pop()
-            self.population_variaces.pop()
+            self.population_variances.pop()
         #print("SELECTED POPULATION")
         #self.print_population()
 
-        # self.tournaments()
+        self.tournaments()
         # popping the fitness values of each individual
         self.fitness_cleaning()
 
-    # def tournaments(self):
-    #     selected_population = []
-    #     selected_variances = []
-    #     for i in range(len(self.population)):
-    #         selected_individual = -1
-    #         fitness_selected = 1000000
-    #         for j in range(self.n_participants):
-    #             participant = np.random.randint(0, len(self.population))
-    #             fitness_participant = self.population[participant][-1]
-    #             if (fitness_participant < fitness_selected):
-    #                 selected_individual = participant
-    #                 fitness_selected = fitness_participant
-    #         selected_population.append(self.population[selected_individual])
-    #         selected_variances.append(self.population_variaces[selected_individual])
-    #     self.population = selected_population.copy()
-    #     self.population_variaces = selected_variances.copy()
+    def tournaments(self):
+        selected_population = []
+        selected_variances = []
+        for i in range(len(self.population)):
+            selected_individual = -1
+            fitness_selected = 1000000
+            for j in range(self.n_participants):
+                participant = np.random.randint(0, len(self.population))
+                fitness_participant = self.population[participant][-1]
+                if (fitness_participant < fitness_selected):
+                    selected_individual = participant
+                    fitness_selected = fitness_participant
+            ind_to_append = self.population[selected_individual].copy()
+            var_to_append = self.population_variances[selected_individual].copy()
+            selected_population.append(ind_to_append)
+            selected_variances.append(var_to_append)
+        self.population = selected_population.copy()
+        self.population_variances = selected_variances.copy()
 
     def fitness_cleaning(self):
-        for i in range(len(self.population)):
-            self.population[i].pop()
+         for y in range(len(self.population)):
+             tmp = self.population[y].copy()
+             self.population[y].pop()
+
         #print("CLEANED POPULATION")
         #self.print_population()
 
     def mutate_variance(self):
-        for i in range(len(self.population_variaces)):
+        for i in range(len(self.population_variances)):
             #print("old variance: " + str(self.population_variaces[i]))
             for j in range(self.n_genes):
-                self.population_variaces[i][j] = ((math.e ** random.gauss(0, self.tasa_aprendizaje0))
-                                                  * self.population_variaces[i][j]
-                                                  * (math.e ** random.gauss(0, self.tasa_aprendizaje))) % self.module_variance
+                self.population_variances[i][j] = ((math.e ** random.gauss(0, self.tasa_aprendizaje0))
+                                                   * self.population_variances[i][j]
+                                                   * (math.e ** random.gauss(0, self.tasa_aprendizaje))) % self.module_variance
             #print("new variance: " + str(self.population_variaces[i]) + "\n")
 
     def print_population(self):
         for i in range(len(self.population)):
             print("i(" + str(i) + "): " + str(self.population[i]))
-            print("v(" + str(i) + "): " + str(self.population_variaces[i]))
+            print("v(" + str(i) + "): " + str(self.population_variances[i]))
         print("\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n")
 
 if __name__ == '__main__':
