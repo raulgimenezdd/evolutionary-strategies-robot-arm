@@ -121,15 +121,15 @@ class OnePlusOneE:
 
 class MuPlusLambda():
     n_genes = 10
-    poblation_size = 80
+    poblation_size = 50
     lambd = 40
     population = []
     population_variaces = []
     best_fitness_generations = []
-    n_generations = 100
+    n_generations = 300
     module_ind = 5
     module_variance = 5
-
+    n_participants = 5
     best_individual_generations = []
     tasa_aprendizaje0 = 1 / math.sqrt(2 * lambd)
     tasa_aprendizaje = 1 / math.sqrt(2 * math.sqrt(lambd))
@@ -194,7 +194,27 @@ class MuPlusLambda():
         self.best_fitness_generations.append(min(current_fitness))
 
     def sort_population(self):
+
+        # adding index to sort variance list at the same time
+        for i in range(len(self.population)):
+            self.population[i].insert(0, i)
+
+        # sorting population
         self.population.sort(key=lambda x: x[-1])
+
+        #extracting order
+        index_list = [x[0] for x in self.population]
+
+        #removing index
+        for i in range(len(self.population)):
+            self.population[i].pop(0)
+
+        #sorting variances
+        sorted_variances = []
+        for i in index_list:
+            sorted_variances.append(self.population_variaces[i])
+
+        self.population_variaces = sorted_variances.copy()
 
     def generate_new_individuals(self, generation):
 
@@ -202,20 +222,28 @@ class MuPlusLambda():
         for i in range(self.lambd):
             new_individual = []
             new_individual_variances = []
+            if i == 0:
+                print(str("parent 1: " + str(self.population[i])))
+                print(str("parent 2: " + str(self.population[i + 1])))
             for j in range(self.n_genes):
 
                 # each gen is the mean
                 new_gen = (self.population[i][j] + self.population[i + 1][j]) / 2
-                new_gen_variance = (self.population_variaces[i][j] + self.population_variaces[i + 1][j]) / 2
+                # print(str(j) + ": " + str(new_gen))
+                gen_variance_posibilities = [self.population_variaces[i][j], self.population_variaces[i + 1][j]]
+                new_gen_variance = random.choice(gen_variance_posibilities)
 
                 # mutate the gen
                 new_gen = (new_gen + random.gauss(0, new_gen_variance)) % self.module_ind
+                # print(str(j) + "mut: " + str(new_gen))
                 new_individual.append(new_gen)
                 new_individual_variances.append(new_gen_variance)
 
             # evaluate new individual
             fitness_new = self.evaluate_individual(new_individual)
             new_individual.append(fitness_new)
+            if i == 0:
+                print("NEW: " + str(new_individual))
             self.population.append(new_individual)
             self.population_variaces.append(new_individual_variances)
 
@@ -231,31 +259,26 @@ class MuPlusLambda():
         #print("SELECTED POPULATION")
         #self.print_population()
 
-        # if generation > 1:
-        #     #print(str(self.best_fitness_generations))
-        #     error_gen = self.best_fitness_generations[-1]
-        #     error_last_gen = self.best_fitness_generations[-2]
-        #     self.mutate_population(error_gen, error_last_gen)
-
+        # self.tournaments()
         # popping the fitness values of each individual
         self.fitness_cleaning()
 
-    # def mutate_population(self, error_gen, error_last_gen):
-    #     if error_gen == error_last_gen:
-    #         for i in range(len(self.population)):
-    #             new_individual = []
-    #             fitness_new_individual = 0
-    #             for j in range(self.n_genes):
-    #                 new_individual.append((self.population[i][j] + random.gauss(0, self.population_variaces[i][j])) % 360)
-    #             fitness_new_individual = self.evaluate_individual(new_individual)
-    #             new_individual.append(fitness_new_individual)
-    #             # print("n" + str(i) + " " + str(new_individual))
-    #             # print("c" + str(i) + " " + str(self.population[i]))
-    #             if fitness_new_individual < self.population[i][-1]:
-    #                 self.population[i] = new_individual.copy()
-    #                 print("\n\n\n\new wins! current: " + str(i) + " " + str(self.population[i]))
-    #         print("\nMUTATED POPULATION")
-    #         self.print_population()
+    # def tournaments(self):
+    #     selected_population = []
+    #     selected_variances = []
+    #     for i in range(len(self.population)):
+    #         selected_individual = -1
+    #         fitness_selected = 1000000
+    #         for j in range(self.n_participants):
+    #             participant = np.random.randint(0, len(self.population))
+    #             fitness_participant = self.population[participant][-1]
+    #             if (fitness_participant < fitness_selected):
+    #                 selected_individual = participant
+    #                 fitness_selected = fitness_participant
+    #         selected_population.append(self.population[selected_individual])
+    #         selected_variances.append(self.population_variaces[selected_individual])
+    #     self.population = selected_population.copy()
+    #     self.population_variaces = selected_variances.copy()
 
     def fitness_cleaning(self):
         for i in range(len(self.population)):
@@ -274,15 +297,15 @@ class MuPlusLambda():
 
     def print_population(self):
         for i in range(len(self.population)):
-            print("i: " + str(i) + str(self.population[i]))
-            print("v: " + str(i) + str(self.population_variaces[i]))
+            print("i(" + str(i) + "): " + str(self.population[i]))
+            print("v(" + str(i) + "): " + str(self.population_variaces[i]))
         print("\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n")
 
 if __name__ == '__main__':
 
     start = 0
     end = 0
-    strategy = 0
+    strategy = 1
     execution_time = 0
 
     if strategy == 1:
@@ -292,12 +315,12 @@ if __name__ == '__main__':
 
         for i in range(problem.n_generations):
 
-
             print("-----------------------------------------------------------\nGENERATION "
                   + str(i) + "\n-----------------------------------------------------------")
             problem.evaluate_population()
             problem.generate_new_individuals(i)
             problem.mutate_variance()
+
         end = time.time()
         execution_time = str(end - start)
         print("------------------------------------\nALGORITHM FINISHED\n - "
