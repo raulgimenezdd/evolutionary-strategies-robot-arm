@@ -10,12 +10,13 @@ class OnePlusOneE:
     individual = []
     variance = []
     errors_generations = []
-    success_vector_size = 250
+    success_vector_size = 2
     current_generation = 0
-    n_generations = 10000
+    n_generations = 100
     c = 0.82
     module_ind = 5
     module_variance = 7
+    n_evaluations = 0
 
 
     def initialize_individual(self):
@@ -53,6 +54,7 @@ class OnePlusOneE:
                   "&c10=" + str(self.individual[9])
             r = requests.get(url)
             print("Evaluating individual: " + str(self.individual) + "\nError: " + r.text)
+        self.n_evaluations = self.n_evaluations + 1
         return float(r.text)
 
     def evaluate_individual(self, individual=None):
@@ -71,6 +73,7 @@ class OnePlusOneE:
                   "&c4=" + str(self.individual[3])
             r = requests.get(url)
             print("Evaluating individual: " + str(self.individual) + "\nError: " + r.text)
+        self.n_evaluations = self.n_evaluations + 1
         return float(r.text)
 
     def evolution(self):
@@ -125,18 +128,19 @@ class OnePlusOneE:
 
 class MuPlusLambda():
     n_genes = 4
-    poblation_size = 50
-    lambd = 30
+    poblation_size = 10
+    lambd = 7
     population = []
     population_variances = []
     best_fitness_generations = []
-    n_generations = 500
+    n_generations = 10
     module_ind = 10
     module_variance = 15
     n_participants = 10
     best_individual_generations = []
     tasa_aprendizaje0 = 1 / math.sqrt(2 * lambd)
     tasa_aprendizaje = 1 / math.sqrt(2 * math.sqrt(lambd))
+    n_evaluations = 0
 
     def initialize_individual(self):
         individual = []
@@ -174,6 +178,7 @@ class MuPlusLambda():
                   "&c3=" + str(individual[2]) + \
                   "&c4=" + str(individual[3])
             r = requests.get(url)
+        self.n_evaluations = self.n_evaluations + 1
         return float(r.text)
 
     def evaluate_population(self, population=None):
@@ -314,7 +319,7 @@ if __name__ == '__main__':
     start = 0
     end = 0
     execution_time = 0
-    strategy = 1
+    strategy = 0
 
     if strategy == 0:
         start = time.time()
@@ -334,7 +339,8 @@ if __name__ == '__main__':
         print("------------------------------------\nALGORITHM FINISHED\n - "
               "Tiempo de ejecución: " + execution_time +
               "\n - Error minimo: " + str(min(problem.best_fitness_generations)) +
-              "\n - Mejor individuo: " + str(problem.best_individual_generations[-1]))
+              "\n - Mejor individuo: " + str(problem.best_individual_generations[-1])+
+              "\n - Número de evaluaciones: " + str(problem.n_evaluations))
         plt.plot(problem.best_fitness_generations)
         plt.title("Evolución Error")
         plt.xlabel("Generacion")
@@ -353,7 +359,8 @@ if __name__ == '__main__':
         print("------------------------------------\nALGORITHM FINISHED\n - "
               "Tiempo de ejecución: " + execution_time +
               "\n - Error minimo: " + str(min(problem.errors_generations)) +
-              "\n - Mejor individuo: " + str(problem.individual))
+              "\n - Mejor individuo: " + str(problem.individual) +
+              "\n - Número de evaluaciones: " + str(problem.n_evaluations))
 
         plt.plot(problem.errors_generations)
         plt.title("Evolución Error")
