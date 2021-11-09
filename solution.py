@@ -10,9 +10,9 @@ class OnePlusOneE:
     individual = []
     variance = []
     errors_generations = []
-    success_vector_size = 50
+    success_vector_size = 250
     current_generation = 0
-    n_generations = 1000
+    n_generations = 10000
     c = 0.82
     module_ind = 5
     module_variance = 7
@@ -79,12 +79,17 @@ class OnePlusOneE:
         for i in range(self.success_vector_size):
             print("------------------------------------\nGENERATION " + str(self.current_generation))
 
-            # evaluation of the current individual
-            if self.n_genes == 4:
-                error_individual = self.evaluate_individual()
+            if self.current_generation == 0:
+                # evaluation of the current individual
+                if self.n_genes == 4:
+                    error_individual = self.evaluate_individual()
+                else:
+                    error_individual = self.final_evaluate_individual()
+                self.errors_generations.append(error_individual)
             else:
-                error_individual = self.final_evaluate_individual()
-
+                error_individual = self.errors_generations[-1]
+            print("Current individual: " + str(self.individual))
+            print("Current Error: " + str(error_individual))
             new_individual = []
 
             # creation & evaluation of the new individual
@@ -101,7 +106,6 @@ class OnePlusOneE:
                 n_success = n_success + 1
                 print("***NEW INDIVIDUAL WINS***  " + str(n_success) + "\nCurrent individual: " + str(self.individual))
                 self.errors_generations.append(error_new_individual)
-
             else:
                 self.errors_generations.append(error_individual)
 
@@ -120,16 +124,16 @@ class OnePlusOneE:
         print("New variance: " + str(self.variance))
 
 class MuPlusLambda():
-    n_genes = 10
-    poblation_size = 100
-    lambd = 75
+    n_genes = 4
+    poblation_size = 50
+    lambd = 30
     population = []
     population_variances = []
     best_fitness_generations = []
     n_generations = 500
-    module_ind = 5
-    module_variance = 10
-    n_participants = 5
+    module_ind = 10
+    module_variance = 15
+    n_participants = 10
     best_individual_generations = []
     tasa_aprendizaje0 = 1 / math.sqrt(2 * lambd)
     tasa_aprendizaje = 1 / math.sqrt(2 * math.sqrt(lambd))
@@ -184,8 +188,8 @@ class MuPlusLambda():
 
             self.population[i].append(fitness_value)
         self.sort_population()
-        print("EVALUATED POPULATION")
-        self.print_population()
+        # print("EVALUATED POPULATION")
+        # self.print_population()
 
         # storing the best values
         print("BEST FITNESS GENERATION: " + str(min(current_fitness)))
@@ -222,9 +226,9 @@ class MuPlusLambda():
         for i in range(self.lambd):
             new_individual = []
             new_individual_variances = []
-            if i == 0:
-                print(str("parent 1: " + str(self.population[i])))
-                print(str("parent 2: " + str(self.population[i + 1])))
+            # if i == 0:
+            #     print(str("parent 1: " + str(self.population[i])))
+            #     print(str("parent 2: " + str(self.population[i + 1])))
             for j in range(self.n_genes):
 
                 # each gen is the mean
@@ -242,8 +246,8 @@ class MuPlusLambda():
             # evaluate new individual
             fitness_new = self.evaluate_individual(new_individual)
             new_individual.append(fitness_new)
-            if i == 0:
-                print("NEW: " + str(new_individual))
+            # if i == 0:
+            #     print("NEW: " + str(new_individual))
             self.population.append(new_individual)
             self.population_variances.append(new_individual_variances)
 
@@ -309,10 +313,10 @@ if __name__ == '__main__':
 
     start = 0
     end = 0
-    strategy = 1
     execution_time = 0
+    strategy = 1
 
-    if strategy == 1:
+    if strategy == 0:
         start = time.time()
         problem = MuPlusLambda()
         problem.initialize_poblation()
@@ -331,6 +335,11 @@ if __name__ == '__main__':
               "Tiempo de ejecución: " + execution_time +
               "\n - Error minimo: " + str(min(problem.best_fitness_generations)) +
               "\n - Mejor individuo: " + str(problem.best_individual_generations[-1]))
+        plt.plot(problem.best_fitness_generations)
+        plt.title("Evolución Error")
+        plt.xlabel("Generacion")
+        plt.ylabel("Error")
+        plt.show()
     else:
         start = time.time()
         problem = OnePlusOneE()
@@ -346,10 +355,9 @@ if __name__ == '__main__':
               "\n - Error minimo: " + str(min(problem.errors_generations)) +
               "\n - Mejor individuo: " + str(problem.individual))
 
-    '''
-    plt.plot(problem.errors_generations)
-    plt.title("Evolución Error")
-    plt.xlabel("Generacion")
-    plt.ylabel("Error")
-    plt.show()
-    '''
+        plt.plot(problem.errors_generations)
+        plt.title("Evolución Error")
+        plt.xlabel("Generacion")
+        plt.ylabel("Error")
+        plt.show()
+
